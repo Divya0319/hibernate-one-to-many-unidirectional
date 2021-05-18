@@ -1,5 +1,7 @@
 package com.hibernatetutorial.demo;
 
+import java.util.List;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -38,35 +40,54 @@ public class FetchJoinDemo {
 			
 			int theId = 1;
 
-			Query<Instructor> query = 
-					session.createQuery("select i from Instructor i "
-								+ "JOIN FETCH i.courses "
-								+ "WHERE i.id=:theInstructorId",
-							Instructor.class);
+			Instructor tempInstructor = session.get(Instructor.class, theId);
+			
+			System.out.println("luv2code: Instructor: " + tempInstructor);
+			
+			// commit the transaction
+			session.getTransaction().commit();
+			
+			// close the session
+			session.close();
+			System.out.println("\nluv2code:  The session is now closed!\n");
+	
+		
+			
+			// SOMEWHERE LATER IN PROGRAM
+			// GET A NEW SESSION
+			
+			System.out.println("\n\nluv2code:  Opening a new session \n");
+			
+			session = factory.getCurrentSession();
+			
+			session.beginTransaction();
+			
+			// get courses for a given parameter
+			Query<Course> query = session.createQuery("select c from Course c "
+						+ "where c.instructor.id=:theInstructorId",
+						Course.class);
+			
 			
 			// set parameter on Query
 			query.setParameter("theInstructorId", theId);
 			
-			// execute query and get instructor
-			Instructor tempInstructor = query.getSingleResult();
+			List<Course> tempCourses = query.getResultList();
 			
-			System.out.println("luv2code:  Instructor: " + tempInstructor);
+			System.out.println("luv2code:  tempCourses: " + tempCourses);
+			
+			// now assign to instructor object in memory
+			tempInstructor.setCourses(tempCourses);
+			
+			
+			System.out.println("luv2code:  Courses: " + tempInstructor.getCourses());
 						
 			
 			// commit transaction
 			session.getTransaction().commit();
 			
-			// close the session
-			session.close();
-			
-			System.out.println("\nluv2code: The session is now closed\n");
-			
-			
-			// get course for instructor
-			System.out.println("luv2code:  Courses: " + tempInstructor.getCourses());
-			
+							
 			System.out.println("------------       -----------------");
-			System.out.println("Done!!");
+			System.out.println("luv2code:  Done!!");
 			System.out.println("------------       -----------------");
 			
 		}
